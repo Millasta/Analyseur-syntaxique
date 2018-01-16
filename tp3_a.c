@@ -221,7 +221,7 @@ int analyseurLR() {
     initTableRegle(TableRegle);
 
     char *JsonSymbTab = " tfu{}[],:snn";
-    char *colonneTabAction = "{}[],:sntfu#";
+    char *colonneTabAction = "{}[],:sntfu\0";
     char *colonneTabGoto = "OMPAEV";
     char *rawData = "{ \" titre_album\":\"Abacab\",\"groupe\":\"Genesis\",\"annee\":1981,\"genre\":\"Rock \" }";
     char *cleanData = removeBlanks(rawData);
@@ -233,10 +233,12 @@ int analyseurLR() {
     int fini = 0;
     char lexeme = JsonSymbTab[lex(lex_data)];
     while(!fini) {
-        printf("\nPile : %d Lexeme : %c Index: %d", sommetInt(pile), lexeme, indexOfChar(colonneTabAction, lexeme));
+        //printVoidPile(pileJson);
+        //printf("\nPile : %d Lexeme : %c Index: %d", sommetInt(pile), lexeme, indexOfChar(colonneTabAction, lexeme));
         fflush(stdout);
         action = strdup(TableAction[sommetInt(pile)][indexOfChar(colonneTabAction, lexeme)]);
-        printf(" Action : %s\n", action);
+        //printf("TabAction[%d][%d]\n", sommetInt(pile), indexOfChar(colonneTabAction, lexeme));
+        //printf(" Action : %s\n", action);
         if(action == NULL) { //ERREUR
             printf("Erreur\n");
             return -1;
@@ -256,7 +258,7 @@ int analyseurLR() {
                 buff[i] = action[i+1];
             int deplacement = atoi(buff);
 
-            printf("Deplacement : %d\n", deplacement);
+            //printf("Deplacement : %d\n", deplacement);
             empilerInt(pile, deplacement);
             lexeme = JsonSymbTab[lex(lex_data)];
         }
@@ -266,12 +268,12 @@ int analyseurLR() {
             for(i = 0 ; i < strlen(action) ; i++)
                 buff[i] = action[i+1];
             int nRegle = atoi(buff);
-            printf("Regle (%d) : %s -> %s\n", nRegle, TableRegle[nRegle][0], TableRegle[nRegle][1]);
+            //printf("Regle (%d) : %s -> %s\n", nRegle, TableRegle[nRegle][0], TableRegle[nRegle][1]);
 
             for(i = 0 ; i < strlen(TableRegle[nRegle][1]) ; i++)
                 depilerInt(pile);
 
-            printf("TabGoto[%d][%d]", sommetInt(pile), indexOfChar(colonneTabGoto, TableRegle[nRegle][0][0]));
+            //printf("TabGoto[%d][%d] = %d empilé\n", sommetInt(pile), indexOfChar(colonneTabGoto, TableRegle[nRegle][0][0]), atoi(TableGoto[sommetInt(pile)][indexOfChar(colonneTabGoto, TableRegle[nRegle][0][0])]));
             empilerInt(pile, atoi(TableGoto[sommetInt(pile)][indexOfChar(colonneTabGoto, TableRegle[nRegle][0][0])]));
 
             switch(nRegle) {
@@ -291,25 +293,30 @@ int analyseurLR() {
                     break;
                 }
                 case 4: {
-                    void *O = depilerVoid(pileJson);
-                    void *P = depilerVoid(pileJson);
-                    InsertJsonObject(O, P);
+                    if(pileJson->indexSommet > 0) {
+                        void *O = depilerVoid(pileJson);
+                        void *P = depilerVoid(pileJson);
+                        InsertJsonObject(O, P);
+                    }
+                    else fini = 1;
                     break;
                 }
                 case 5: { // P -> s : V
                     void *P = CreateJsonPair();
                     void *C = depilerVoid(pileJson);
-                    char *s = strdup(lex_data->tableSymboles[lex_data->nbSymboles-1].val.chaine);
+
+                    char *s = strdup(lex_data->tableSymboles[lex_data->nbSymboles-2].val.chaine);
+
                     UpdateJsonPair(P, s, NULL);
                     free(s);
                     empilerVoid(pileJson, P);
 
                     // Delete s from tableSymboles
-                    lex_data->nbSymboles--;
+                    /*lex_data->nbSymboles--;
                     free(lex_data->tableSymboles[lex_data->nbSymboles].val.chaine);
                     lex_data->tableSymboles = realloc(lex_data->tableSymboles, sizeof(TSymbole) * lex_data->nbSymboles);
                     if(lex_data->tableSymboles == NULL)
-                        printf("Err: realloc\n");
+                        printf("Err: realloc\n");*/
                     break;
                 }
                 case 10: {
