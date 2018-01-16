@@ -242,6 +242,7 @@ int analyseurLR() {
             return -1;
         }
         else if(strcmp(action, "acc") == 0) {
+            printf("Acceptation\n");
             void *o = depilerVoid(pileJson);
             fini = 1;
             return 0;
@@ -270,6 +271,7 @@ int analyseurLR() {
             for(i = 0 ; i < strlen(TableRegle[nRegle][1]) ; i++)
                 depilerInt(pile);
 
+            printf("TabGoto[%d][%d]", sommetInt(pile), indexOfChar(colonneTabGoto, TableRegle[nRegle][0][0]));
             empilerInt(pile, atoi(TableGoto[sommetInt(pile)][indexOfChar(colonneTabGoto, TableRegle[nRegle][0][0])]));
 
             switch(nRegle) {
@@ -294,7 +296,7 @@ int analyseurLR() {
                     InsertJsonObject(O, P);
                     break;
                 }
-                case 5: {
+                case 5: { // P -> s : V
                     void *P = CreateJsonPair();
                     void *C = depilerVoid(pileJson);
                     char *s = strdup(lex_data->tableSymboles[lex_data->nbSymboles-1].val.chaine);
@@ -311,17 +313,34 @@ int analyseurLR() {
                     break;
                 }
                 case 10: {
-                    JsonPair *P = depilerVoid(pileJson);
-                    char *value = strdup(lex_data->tableSymboles[lex_data->nbSymboles-1].val.chaine);
-                    char *pairName = strdup(P->string);
+                    JsonPair *P = CreateJsonPair();
+                    JsonValue value;
+                    value.string = strdup(lex_data->tableSymboles[lex_data->nbSymboles-1].val.chaine);
+                    char *pairName = strdup(lex_data->tableSymboles[lex_data->nbSymboles-2].val.chaine);
                     void *C = CreateJsonValueContainer();
-                    enum ValueType type;
-                    type = string;
+                    ValueType type = string;
                     UpdateJsonValueContainer(C, type, value);
+
                     UpdateJsonPair(P, pairName, C);
-                    free(value);
+
+                    free(value.string);
                     free(pairName);
-                    empilerVoid(P, pileJson);
+                    empilerVoid(pileJson, P);
+                    break;
+                }
+                case 11: {
+                    JsonPair *P = CreateJsonPair();
+                    JsonValue value;
+                    value.integer = lex_data->tableSymboles[lex_data->nbSymboles-1].val.entier;
+                    char *pairName = strdup(lex_data->tableSymboles[lex_data->nbSymboles-2].val.chaine);
+                    void *C = CreateJsonValueContainer();
+                    ValueType type = integer;
+                    UpdateJsonValueContainer(C, type, value);
+
+                    UpdateJsonPair(P, pairName, C);
+                    empilerVoid(pileJson, P);
+                    free(pairName);
+                    break;
                 }
                 default:
                     fini = 1;
