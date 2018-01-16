@@ -7,12 +7,38 @@
  *
  */
 
+
+#include <bsd/stdlib.h>
 #include <stdio.h> /* pour asprintf */
 #include <stdlib.h> /* pour realloc */
 #include <string.h> /* pour strcmp */
 #include "json_tree.h"
 
+#define _GNU_SOURCE // for asprintf warning
 #define STRING_SIZE 128
+
+/**
+ * \fn General purpose memory allocation functions
+ * \param[in] ptr : a pointer to the memory
+ * \param[in] size : the new size of the memory to allocate
+ * \return returns a pointer to the allocated memory if successful, otherwise a NULL pointer
+ *
+ */
+void * reallocf(void *ptr, size_t size)
+{
+	void *nptr;
+	nptr = realloc(ptr, size);
+
+	/*
+	 * When the System V compatibility option (malloc "V" flag) is
+	 * in effect, realloc(ptr, 0) frees the memory and returns NULL.
+	 * So, to avoid double free, call free() only when size != 0.
+	 * realloc(ptr, 0) can't fail when ptr != NULL.
+	 */
+	if (!nptr && ptr && size != 0)
+		free(ptr);
+	return (nptr);
+}
 
 /**
  * \fn CreateJsonArray
@@ -43,9 +69,9 @@ int InsertJsonArray(JsonArray * _array, JsonValueContainer * _valueContainer, co
     } else {
         _array->elements = tabValueContainer;
     }
-    if ( _position < _array->size ) {
+    if ( (int)_position < _array->size ) {
         i = _array->size;
-        while ( i > _position ) {
+        while ( i > (int)_position ) {
             _array->elements[i] = _array->elements[i - 1];
             i--;
         }
@@ -151,7 +177,6 @@ JsonObject * CreateJsonObject() {
  * \return <=0 : erreur, sinon la nouvelle taille de _object
  */
 int InsertJsonObject(JsonObject * _object, JsonPair * _pair) {
-    int i=0;
     JsonPair** tabPair = (JsonPair**)reallocf(_object->members,(_object->size+1)*sizeof(JsonPair*));
     if ( tabPair == NULL ) {
         return 0;
@@ -245,9 +270,9 @@ char * PrintDotJsonObject(const JsonObject * _object, int _id, int _idParent) {
     char * resultat = NULL;
     static int idObject = 0;
     static int idPair = 0;
-    char * chaine_id;
+    //char * chaine_id;
     int currentId;
-    
+
     /* 2 cas : 1)l'objet est dans une paire et 2) le noeud a deja ete cree */
     if ( _id >= 0 ) {
         /* le noeud a deja ete cree */
@@ -424,29 +449,34 @@ int DeleteJsonValueContainer(JsonValueContainer ** _valueContainer) {
  */
 char * PrintJsonValueContainer(const JsonValueContainer * _valueContainer) {
     char * resultat = NULL;
-    int erreur;
+    //int erreur;
     switch (_valueContainer->type ) {
         case string:
             resultat = strdup(_valueContainer->value.string);
             break;
         case integer:
-            erreur = asprintf(&resultat,"%d",_valueContainer->value.integer);
+            //erreur = asprintf(&resultat,"%d",_valueContainer->value.integer);
+            asprintf(&resultat,"%d",_valueContainer->value.integer);
             break;
         case real:
-            erreur = asprintf(&resultat,"%f",_valueContainer->value.real);
+            //erreur = asprintf(&resultat,"%f",_valueContainer->value.real);
+            asprintf(&resultat,"%f",_valueContainer->value.real);
             break;
         case object:
             resultat = PrintJsonObject(_valueContainer->value.object);
+            PrintJsonObject(_valueContainer->value.object);
             break;
         case array:
             resultat = PrintJsonArray(_valueContainer->value.array);
             break;
         case constant:
-            erreur = asprintf(&resultat,"%d",_valueContainer->value.constant);
+            ///erreur = asprintf(&resultat,"%d",_valueContainer->value.constant);
+            asprintf(&resultat,"%d",_valueContainer->value.constant);
             break;
         default:
             break;
     }
+
     return resultat;
 }
 
@@ -511,8 +541,3 @@ char * PrintJsonPair(const JsonPair * _pair) {
     free(chaine);
     return resultat;
 }
-
-
-
-
-
