@@ -134,6 +134,7 @@ void initTableGoto(char * table[26][6]) {
     table[14][3] = strdup("12");
     table[24][3] = strdup("12");
 
+
     table[14][4] = strdup("20");
     table[24][4] = strdup("25");
 
@@ -304,7 +305,8 @@ int analyseurLR() {
             for (i = 0 ; i < strlen(TableRegle[nRegle][1]) ; i++)
                 depilerInt(pile);
 
-            empilerInt(pile, atoi(TableGoto[sommetInt(pile)][indexOfChar(colonneTabGoto, TableRegle[nRegle][0][0])]));
+
+            empilerInt(pile, atoi(TableGoto[sommetInt(pile)][indexOfChar(colonneTabGoto, TableRegle[nRegle][0][0])])); // 8 après ',' ?
 
 			// Affichage pour débogage
 			printIntPile(pile);
@@ -313,7 +315,7 @@ int analyseurLR() {
 			reducsTab[reducsTabSize - 1] = nRegle;
 			printf("\nreducsTab[%d] = %d", reducsTabSize, reducsTab[reducsTabSize - 1]);
 			
-            /*switch(nRegle) {
+            switch(nRegle) {
                 case 1: { // S → O
                     void *O = CreateJsonObject();
 
@@ -325,8 +327,9 @@ int analyseurLR() {
                     break;
 				}
                 case 3: { // M → P
-                    void *P = depilerVoid(pileJson);
                     void *O = CreateJsonObject();
+                    void *P = depilerVoid(pileJson);
+
                     InsertJsonObject(O, P);
                     empilerVoid(pileJson, O);
 
@@ -335,6 +338,7 @@ int analyseurLR() {
                 case 4: { // M → P, M
                     void *O = depilerVoid(pileJson);
                     void *P = depilerVoid(pileJson);
+
                     InsertJsonObject(O, P);
 					empilerVoid(pileJson, O);
 
@@ -352,16 +356,33 @@ int analyseurLR() {
 
                     break;
                 }
-				case 6: {
+				case 6: { // A → []
+                    void *A = CreateJsonArray();
+
+                    empilerVoid(pileJson, A);
+
                     break;
                 }
-				case 7: {
+				case 7: { // A → [E]
+					// Il n’y a rien à faire car l’objet E est déjà sur la pile
                     break;
                 }
-				case 8: {
+				case 8: { // E → V
+ 					void *E = CreateJsonArray();
+	                void *V = depilerVoid(pileJson);
+
+	                InsertJsonObject(E, V);
+					empilerVoid(pileJson, E);
+
                     break;
                 }
-				case 9: {
+				case 9: { // E → V, E
+					JsonArray *E = depilerVoid(pileJson);
+                    void *V = depilerVoid(pileJson);
+
+                    InsertJsonArray(E, V, E->size - 1);
+					empilerVoid(pileJson, E);
+
                     break;
                 }
                 case 10: { // V → s
@@ -405,6 +426,7 @@ int analyseurLR() {
 					empilerVoid(pileJson, V);
 
 					if (lex_data->nbSymboles > 0) {
+						lex_data->nbSymboles--;
 						lex_data->tableSymboles = realloc(lex_data->tableSymboles, sizeof(TSymbole) * lex_data->nbSymboles);
 						if (lex_data->tableSymboles == NULL)
 							return -1;
@@ -422,102 +444,60 @@ int analyseurLR() {
 					UpdateJsonValueContainer(V, type, value);
 					empilerVoid(pileJson, V);
 
-					if (lex_data->nbSymboles > 0) {
-						lex_data->nbSymboles--;
-		                lex_data->tableSymboles = realloc(lex_data->tableSymboles, sizeof(TSymbole) * lex_data->nbSymboles);
-						if (lex_data->tableSymboles == NULL)
-							return -1;
-					}
+                    break;
+                }
+				case 13: { // V → A
+					JsonValueContainer *V = CreateJsonValueContainer();
+                    JsonValue value;
+					ValueType type = array;
+
+					value.array = CreateJsonArray();
+
+					UpdateJsonValueContainer(V, type, value);
+					empilerVoid(pileJson, V);
 
                     break;
                 }
-				case 13: {
+				case 14: { // V → t
+					JsonValueContainer *V = CreateJsonValueContainer();
+                    JsonValue value;
+					ValueType type = constant;
+
+					value.constant = CSTE_JSON_TRUE;
+
+					UpdateJsonValueContainer(V, type, value);
+					empilerVoid(pileJson, V);
+
                     break;
                 }
-				case 14: {
+				case 15: { // V → f
+					JsonValueContainer *V = CreateJsonValueContainer();
+                    JsonValue value;
+					ValueType type = constant;
+
+					value.constant = CSTE_JSON_FALSE;
+
+					UpdateJsonValueContainer(V, type, value);
+					empilerVoid(pileJson, V);
+
                     break;
                 }
-				case 15: {
-                    break;
-                }
-				case 16: {
+				case 16: { // V → u
+					JsonValueContainer *V = CreateJsonValueContainer();
+                    JsonValue value;
+					ValueType type = constant;
+
+					value.constant = CSTE_JSON_NULL;
+
+					UpdateJsonValueContainer(V, type, value);
+					empilerVoid(pileJson, V);
+
                     break;
                 }
                 default:
                     fini = 1;
                     break;
-            }*/
-
-			/*
-
-			#define CSTE_JSON_NULL 2
-			#define CSTE_JSON_TRUE 1
-			#define CSTE_JSON_FALSE 0
-
-
-			typedef struct _json_pair {
-				char * string;
-				struct _json_value_container * value;
-			} JsonPair;
-
-			typedef enum _value_type {
-				string,
-				integer,
-				real,
-				object,
-				array,
-				constant
-			} ValueType;
-
-			typedef union {
-				char * string;
-				int integer;
-				float real;
-				struct _json_object * object;
-				struct _json_array * array;
-				int constant;
-			} JsonValue;
-
-			typedef struct _json_value_container {
-				ValueType type;
-				JsonValue value;
-			} JsonValueContainer;
-
-			typedef struct _json_object {
-				JsonPair ** members;
-				int size;
-			} JsonObject;
-
-			typedef struct _json_array {
-				JsonValueContainer ** elements;
-				int size;
-			} JsonArray;
-
-
-			JsonArray * CreateJsonArray();
-			int InsertJsonArray(JsonArray * _array, JsonValueContainer * _valueContainer, const unsigned int _position);
-			int DeleteJsonArray(JsonArray ** _array);
-			char * PrintJsonArray(const JsonArray * _array);
-			char * PrintDotJsonArray(const JsonArray * _array);
-
-			JsonObject * CreateJsonObject();
-			int InsertJsonObject(JsonObject * _object, JsonPair * _pair);
-			JsonValueContainer * GetJsonValueContainer(const JsonObject * _object, const char * _string);
-			int DeleteJsonObject(JsonObject ** _object);
-			char * PrintJsonObject(const JsonObject * _object);
-			char * PrintDotJsonObject(const JsonObject * _object, int _id, int _idParent);
-
-			JsonValueContainer * CreateJsonValueContainer();
-			void UpdateJsonValueContainer(JsonValueContainer * _valueContainer, ValueType _type, JsonValue _value);
-			int DeleteJsonValueContainer(JsonValueContainer ** _valueContainer);
-			char * PrintJsonValueContainer(const JsonValueContainer * _valueContainer);
-
-			JsonPair * CreateJsonPair();
-			void UpdateJsonPair(JsonPair * _pair, char * _string, JsonValueContainer * _value);
-			int DeleteJsonPair(JsonPair ** _pair);
-			char * PrintJsonPair(const JsonPair *_pair);
-
-			*/
+            }
         }
         free(action);
     }
