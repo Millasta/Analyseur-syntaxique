@@ -27,7 +27,7 @@
 #define JSON_STRING 10 /**<entite lexicale chaine de caracteres */
 #define JSON_INT_NUMBER 11 /**< entite lexicale nombre entier */
 #define JSON_REAL_NUMBER 12 /**< entite lexicale nombre reel */
-
+#define JSON_VALID 13 /**< code de bon déroulement du dernier lex */
 
 /**
  * \fn int isSep(char _symb)
@@ -222,10 +222,10 @@ int lex(TLex * _lexData) {
 		case '"':
 			_lexData->startPos++;
 
-			printf("\nEn lecture :\t");
+			//printf("\nEn lecture :\t");
 
 			while (!(*_lexData->startPos == '"' && *(_lexData->startPos - 1) != '\\') && *_lexData->startPos != '\0') {
-				printf("%c", *_lexData->startPos);
+				//printf("%c", *_lexData->startPos);
 				buffer[idx] = *_lexData->startPos;
 				_lexData->startPos++;
 				idx++;
@@ -256,9 +256,9 @@ int lex(TLex * _lexData) {
 			return JSON_RCB;
 			break;
 		case 't':
-			printf("\nEn lecture :\t");
+			//printf("\nEn lecture :\t");
 			while (trueModel[idx] != '\0' && *_lexData->startPos == trueModel[idx]) {
-				printf("%c", *_lexData->startPos);
+				//printf("%c", *_lexData->startPos);
 				_lexData->startPos++;
 				idx++;
 			}
@@ -272,9 +272,9 @@ int lex(TLex * _lexData) {
 
 			break;
 		case 'f':
-			printf("\nEn lecture :\t");
+			//printf("\nEn lecture :\t");
 			while (falseModel[idx] != '\0' && *_lexData->startPos == falseModel[idx]) {
-				printf("%c", *_lexData->startPos);
+				//printf("%c", *_lexData->startPos);
 				_lexData->startPos++;
 				idx++;
 			}
@@ -287,9 +287,9 @@ int lex(TLex * _lexData) {
 			return JSON_LEX_ERROR;
 			break;
 		case 'n':
-			printf("\nEn lecture :\t");
+			//printf("\nEn lecture :\t");
 			while (nullModel[idx] != '\0' && *_lexData->startPos == nullModel[idx]) {
-				printf("%c", *_lexData->startPos);
+				//printf("%c", *_lexData->startPos);
 				_lexData->startPos++;
 				idx++;
 			}
@@ -317,18 +317,21 @@ int lex(TLex * _lexData) {
 			_lexData->startPos++;
 			return JSON_COLON;
 			break;
+		case '\0':
+			return JSON_VALID;
+			break;
 		default:
-			printf("\nEn lecture :\t");
+			//printf("\nEn lecture :\t");
 
 			if (*_lexData->startPos == '-') {	// If the integer is negative
-				printf("%c", *_lexData->startPos);
+				//printf("%c", *_lexData->startPos);
 				buffer[idx] = *_lexData->startPos;
 				_lexData->startPos++;
 				idx++;
 			}
 
 			while (*_lexData->startPos >= '0' && *_lexData->startPos <= '9') {
-				printf("%c", *_lexData->startPos);
+				//printf("%c", *_lexData->startPos);
 				buffer[idx] = *_lexData->startPos;
 				_lexData->startPos++;
 				idx++;
@@ -339,20 +342,20 @@ int lex(TLex * _lexData) {
 				return JSON_INT_NUMBER;	// Simple integer case done
 			}
 			else if (*_lexData->startPos == 'e' || *_lexData->startPos == 'E') {
-				printf("%c", *_lexData->startPos);
+				//printf("%c", *_lexData->startPos);
 				buffer[idx] = *_lexData->startPos;
 				_lexData->startPos++;
 				idx++;
 
 				if (*_lexData->startPos == '-' || *_lexData->startPos == '+') {		// The sign of the exp is negative
-					printf("%c", *_lexData->startPos);
+					//printf("%c", *_lexData->startPos);
 					buffer[idx] = *_lexData->startPos;
 					_lexData->startPos++;
 					idx++;
 				}
 
 				while (*_lexData->startPos >= '0' && *_lexData->startPos <= '9') {
-					printf("%c", *_lexData->startPos);
+					//printf("%c", *_lexData->startPos);
 					buffer[idx] = *_lexData->startPos;
 					_lexData->startPos++;
 					idx++;
@@ -364,7 +367,7 @@ int lex(TLex * _lexData) {
 				}
 			}
 			else if (*_lexData->startPos == '.') {
-				printf("%c", *_lexData->startPos);
+				//printf("%c", *_lexData->startPos);
 				buffer[idx] = *_lexData->startPos;
 				_lexData->startPos++;
 				idx++;
@@ -372,7 +375,7 @@ int lex(TLex * _lexData) {
 				if (*_lexData->startPos < '0' || *_lexData->startPos > '9') return JSON_LEX_ERROR;
 
 				while (*_lexData->startPos >= '0' && *_lexData->startPos <= '9') {
-					printf("%c", *_lexData->startPos);
+					//printf("%c", *_lexData->startPos);
 					buffer[idx] = *_lexData->startPos;
 					idx++;
 					_lexData->startPos++;
@@ -383,20 +386,20 @@ int lex(TLex * _lexData) {
 					return JSON_REAL_NUMBER;	// Simple reel case done
 				}
 				else if (*_lexData->startPos == 'e' || *_lexData->startPos == 'E') {
-					printf("%c", *_lexData->startPos);
+					//printf("%c", *_lexData->startPos);
 					buffer[idx] = *_lexData->startPos;
 					_lexData->startPos++;
 					idx++;
 
 					if (*_lexData->startPos == '-' || *_lexData->startPos == '+') {		// The sign of the exp is negative
-						printf("%c", *_lexData->startPos);
+						//printf("%c", *_lexData->startPos);
 						buffer[idx] = *_lexData->startPos;
 						_lexData->startPos++;
 						idx++;
 					}
 
 					while (*_lexData->startPos >= '0' && *_lexData->startPos <= '9') {
-						printf("%c", *_lexData->startPos);
+						//printf("%c", *_lexData->startPos);
 						buffer[idx] = *_lexData->startPos;
 						_lexData->startPos++;
 						idx++;
@@ -476,7 +479,8 @@ int main(int argc, char *argv[]) {
 	int len = 0;
 	int idx = 0;
 	int code[200];
-    char currChar;
+    	char currChar;
+
 	TLex * lex_data;
 	FILE * file;
 

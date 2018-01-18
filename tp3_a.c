@@ -54,9 +54,9 @@ void initTableAction(char * table[26][12]) {
         table[22][1] = strdup("r6");
         table[23][1] = strdup("r7");
 
-        table[9][2] = strdup("d4");
-        table[14][2] = strdup("d4");
-        table[24][2] = strdup("d4");
+        table[9][2] = strdup("d14");
+        table[14][2] = strdup("d14");
+        table[24][2] = strdup("d14");
 
         table[5][3] = strdup("r1");
         table[7][3] = strdup("r2");
@@ -143,57 +143,57 @@ void initTableGoto(char * table[26][6]) {
 
 }
 
-void initTableRegle(char* TableRegle[17][2]) {
-    TableRegle[0][0] = strdup("S");
-    TableRegle[0][1] = strdup("O");
+void initTableRegle(char * table[17][2]) {
+    table[0][0] = strdup("S");
+    table[0][1] = strdup("O");
 
-    TableRegle[1][0] = strdup("O");
-    TableRegle[1][1] = strdup("{}");
+    table[1][0] = strdup("O");
+    table[1][1] = strdup("{}");
 
-    TableRegle[2][0] = strdup("O");
-    TableRegle[2][1] = strdup("{M}");
+    table[2][0] = strdup("O");
+    table[2][1] = strdup("{M}");
 
-    TableRegle[3][0] = strdup("M");
-    TableRegle[3][1] = strdup("P");
+    table[3][0] = strdup("M");
+    table[3][1] = strdup("P");
 
-    TableRegle[4][0] = strdup("M");
-    TableRegle[4][1] = strdup("P,M");
+    table[4][0] = strdup("M");
+    table[4][1] = strdup("P,M");
 
-    TableRegle[5][0] = strdup("P");
-    TableRegle[5][1] = strdup("s:V");
+    table[5][0] = strdup("P");
+    table[5][1] = strdup("s:V");
 
-    TableRegle[6][0] = strdup("A");
-    TableRegle[6][1] = strdup("[]");
+    table[6][0] = strdup("A");
+    table[6][1] = strdup("[]");
 
-    TableRegle[7][0] = strdup("A");
-    TableRegle[7][1] = strdup("[E]");
+    table[7][0] = strdup("A");
+    table[7][1] = strdup("[E]");
 
-    TableRegle[8][0] = strdup("E");
-    TableRegle[8][1] = strdup("V");
+    table[8][0] = strdup("E");
+    table[8][1] = strdup("V");
 
-    TableRegle[9][0] = strdup("E");
-    TableRegle[9][1] = strdup("V,E");
+    table[9][0] = strdup("E");
+    table[9][1] = strdup("V,E");
 
-    TableRegle[10][0] = strdup("V");
-    TableRegle[10][1] = strdup("s");
+    table[10][0] = strdup("V");
+    table[10][1] = strdup("s");
 
-    TableRegle[11][0] = strdup("V");
-    TableRegle[11][1] = strdup("n");
+    table[11][0] = strdup("V");
+    table[11][1] = strdup("n");
 
-    TableRegle[12][0] = strdup("V");
-    TableRegle[12][1] = strdup("O");
+    table[12][0] = strdup("V");
+    table[12][1] = strdup("O");
 
-    TableRegle[13][0] = strdup("V");
-    TableRegle[13][1] = strdup("A");
+    table[13][0] = strdup("V");
+    table[13][1] = strdup("A");
 
-    TableRegle[14][0] = strdup("V");
-    TableRegle[14][1] = strdup("t");
+    table[14][0] = strdup("V");
+    table[14][1] = strdup("t");
 
-    TableRegle[15][0] = strdup("V");
-    TableRegle[15][1] = strdup("f");
+    table[15][0] = strdup("V");
+    table[15][1] = strdup("f");
 
-    TableRegle[16][0] = strdup("V");
-    TableRegle[16][1] = strdup("u");
+    table[16][0] = strdup("V");
+    table[16][1] = strdup("u");
 }
 
 int indexOfChar(const char *str, char c) {
@@ -220,202 +220,311 @@ int analyseurLR() {
     initTableGoto(TableGoto);
     initTableRegle(TableRegle);
 
-    char *JsonSymbTab = " tfu{}[],:snn";
-    char *colonneTabAction = "{}[],:sntfu\0";
+    char *JsonSymbTab = " tfu{}[],:snn#";
+    char *colonneTabAction = "{}[],:sntfu#";
     char *colonneTabGoto = "OMPAEV";
-    char *rawData = "{ \" titre_album\":\"Abacab\",\"groupe\":\"Genesis\",\"annee\":1981,\"genre\":\"Rock \" }";
+    char *rawData = "{\"titre_album\":\"Abbey Road\",\"groupe\":\"The Beatles\",\"annee\":1969,\"est_cool\":true,\"infos-en-vrac\":[1012,false,null,12.34],\"batteur\":{\"nom\":\"Ringo Starr\"}}";
     char *cleanData = removeBlanks(rawData);
-    lex_data = initLexData(cleanData);
-    free(cleanData);
-    printf("Entrée : %s\n", lex_data->data);
-
-    char* action = NULL;
+    char *action = NULL;
     int fini = 0;
-    char lexeme = JsonSymbTab[lex(lex_data)];
-    while(!fini) {
-        //printVoidPile(pileJson);
-        //printf("\nPile : %d Lexeme : %c Index: %d", sommetInt(pile), lexeme, indexOfChar(colonneTabAction, lexeme));
+
+	int *reducsTab = NULL;
+	int reducsTabSize = 0;
+
+    lex_data = initLexData(cleanData);
+
+	char lexeme = JsonSymbTab[lex(lex_data)];
+    free(cleanData);
+
+	printf("\n\n/************ Entrée ***********/\n\n");
+	printf("%s", lex_data->data);
+
+	
+    while (!fini) {
+
         fflush(stdout);
+
+		// Affichage pour débogage
+		printf("\n\n------------ Action ------------\n\n");
+		printf("Lexeme\t\t\t : '%c'\n", lexeme);   
+		printf("[sommetInt, indexOfChar] : [%d, %d]\n", sommetInt(pile), indexOfChar(colonneTabAction, lexeme));
+		printf("Action\t\t\t : %s", TableAction[sommetInt(pile)][indexOfChar(colonneTabAction, lexeme)]);
+
         action = strdup(TableAction[sommetInt(pile)][indexOfChar(colonneTabAction, lexeme)]);
-        //printf("TabAction[%d][%d]\n", sommetInt(pile), indexOfChar(colonneTabAction, lexeme));
-        //printf(" Action : %s\n", action);
-        if(action == NULL) { //ERREUR
-            printf("Erreur\n");
+
+        if (action == NULL) { // ERREUR
+            printf("\n\n/********************************/\n/*******  String refusée  ********/\n/********************************/\n\n");
             return -1;
         }
-        else if(strcmp(action, "acc") == 0) {
-            printf("Acceptation\n");
+        else if (strcmp(action, "acc") == 0) {
+            printf("\n\n/********************************/\n/*******  String acceptée  ******/\n/********************************/\n\n");
             void *o = depilerVoid(pileJson);
+
+
+			int i;
+			printf("Réductions opérées : ");
+			for (i = 0; i < reducsTabSize; i++) printf("%d ", reducsTab[i]);
+
+
             fini = 1;
             return 0;
         }
-        else if(action[0] == 'd') {
-            //printf("TableGoto[%d][%d] = ", sommetInt(pile), indexOfChar(colonneTabAction, lexeme));
-            //int t = atoi(TableGoto[sommetInt(pile)][indexOfChar(colonneTabAction, lexeme)]);
+        else if (action[0] == 'd') {
             int i;
+			int deplacement;
             char *buff = strdup(action);
-            for(i = 0 ; i < strlen(action) ; i++)
-                buff[i] = action[i+1];
-            int deplacement = atoi(buff);
 
-            //printf("Deplacement : %d\n", deplacement);
+            for (i = 0 ; i < strlen(action) ; i++)
+                buff[i] = action[i+1];
+
+            deplacement = atoi(buff);
+
             empilerInt(pile, deplacement);
-            lexeme = JsonSymbTab[lex(lex_data)];
+
+			lexeme = JsonSymbTab[lex(lex_data)];
+
+			// Affichage pour débogage
+			printIntPile(pile);
         }
         else {
             int i;
+			int nRegle;
             char *buff = strdup(action);
-            for(i = 0 ; i < strlen(action) ; i++)
-                buff[i] = action[i+1];
-            int nRegle = atoi(buff);
-            //printf("Regle (%d) : %s -> %s\n", nRegle, TableRegle[nRegle][0], TableRegle[nRegle][1]);
 
-            for(i = 0 ; i < strlen(TableRegle[nRegle][1]) ; i++)
+            for (i = 0 ; i < strlen(action) ; i++)
+                buff[i] = action[i+1];
+
+            nRegle = atoi(buff);
+
+			// Affichage pour débogage
+			printf("\n\n========== Réduction ===========\n\n");
+            printf("Règle : %d\n", nRegle);
+			printf("Contenu : %s → %s", TableRegle[nRegle][0], TableRegle[nRegle][1]);
+
+            for (i = 0 ; i < strlen(TableRegle[nRegle][1]) ; i++)
                 depilerInt(pile);
 
-            //printf("TabGoto[%d][%d] = %d empilé\n", sommetInt(pile), indexOfChar(colonneTabGoto, TableRegle[nRegle][0][0]), atoi(TableGoto[sommetInt(pile)][indexOfChar(colonneTabGoto, TableRegle[nRegle][0][0])]));
             empilerInt(pile, atoi(TableGoto[sommetInt(pile)][indexOfChar(colonneTabGoto, TableRegle[nRegle][0][0])]));
 
-            switch(nRegle) {
-                case 1: {
-                    void *P = CreateJsonObject();
-                    empilerVoid(pileJson, P);
+			// Affichage pour débogage
+			printIntPile(pile);
+			reducsTabSize++;
+			reducsTab = realloc(reducsTab, reducsTabSize * sizeof(int));
+			reducsTab[reducsTabSize - 1] = nRegle;
+			printf("\nreducsTab[%d] = %d", reducsTabSize, reducsTab[reducsTabSize - 1]);
+			
+            /*switch(nRegle) {
+                case 1: { // S → O
+                    void *O = CreateJsonObject();
+
+                    empilerVoid(pileJson, O);
                     break;
                 }
-                case 2:
-                    // il n’y a rien à faire car l’objet M est déjà sur la pile
+                case 2: { // O → {M}
+                    // Il n’y a rien à faire car l’objet M est déjà sur la pile
                     break;
-                case 3: {
+				}
+                case 3: { // M → P
                     void *P = depilerVoid(pileJson);
-                    void *object = CreateJsonObject();
-                    InsertJsonObject(object, P);
-                    empilerVoid(pileJson, object);
+                    void *O = CreateJsonObject();
+                    InsertJsonObject(O, P);
+                    empilerVoid(pileJson, O);
+
                     break;
                 }
-                case 4: {
-                    if(pileJson->indexSommet > 0) {
-                        void *O = depilerVoid(pileJson);
-                        void *P = depilerVoid(pileJson);
-                        InsertJsonObject(O, P);
-                    }
-                    else fini = 1;
+                case 4: { // M → P, M
+                    void *O = depilerVoid(pileJson);
+                    void *P = depilerVoid(pileJson);
+                    InsertJsonObject(O, P);
+					empilerVoid(pileJson, O);
+
                     break;
                 }
-                case 5: { // P -> s : V
+                case 5: { // P → s : V
                     void *P = CreateJsonPair();
-                    void *C = depilerVoid(pileJson);
+                    void *V = depilerVoid(pileJson);
 
-                    char *s = strdup(lex_data->tableSymboles[lex_data->nbSymboles-2].val.chaine);
+                    char *s = strdup(lex_data->tableSymboles[lex_data->nbSymboles - 1].val.chaine);
+					free(s);
 
-                    UpdateJsonPair(P, s, NULL);
-                    free(s);
+                    UpdateJsonPair(P, s, V);
                     empilerVoid(pileJson, P);
 
-                    // Delete s from tableSymboles
-                    /*lex_data->nbSymboles--;
-                    free(lex_data->tableSymboles[lex_data->nbSymboles].val.chaine);
-                    lex_data->tableSymboles = realloc(lex_data->tableSymboles, sizeof(TSymbole) * lex_data->nbSymboles);
-                    if(lex_data->tableSymboles == NULL)
-                        printf("Err: realloc\n");*/
                     break;
                 }
-                case 10: {
-                    JsonPair *P = CreateJsonPair();
-                    JsonValue value;
-                    value.string = strdup(lex_data->tableSymboles[lex_data->nbSymboles-1].val.chaine);
-                    char *pairName = strdup(lex_data->tableSymboles[lex_data->nbSymboles-2].val.chaine);
-                    void *C = CreateJsonValueContainer();
-                    ValueType type = string;
-                    UpdateJsonValueContainer(C, type, value);
-
-                    UpdateJsonPair(P, pairName, C);
-
-                    free(value.string);
-                    free(pairName);
-                    empilerVoid(pileJson, P);
+				case 6: {
                     break;
                 }
-                case 11: {
-                    JsonPair *P = CreateJsonPair();
+				case 7: {
+                    break;
+                }
+				case 8: {
+                    break;
+                }
+				case 9: {
+                    break;
+                }
+                case 10: { // V → s
+					JsonValueContainer *V = CreateJsonValueContainer();
                     JsonValue value;
-                    value.integer = lex_data->tableSymboles[lex_data->nbSymboles-1].val.entier;
-                    char *pairName = strdup(lex_data->tableSymboles[lex_data->nbSymboles-2].val.chaine);
-                    void *C = CreateJsonValueContainer();
-                    ValueType type = integer;
-                    UpdateJsonValueContainer(C, type, value);
+					ValueType type = string;
 
-                    UpdateJsonPair(P, pairName, C);
-                    empilerVoid(pileJson, P);
-                    free(pairName);
+                    value.string = strdup(lex_data->tableSymboles[lex_data->nbSymboles - 1].val.chaine);
+					
+					UpdateJsonValueContainer(V, type, value);
+
+					free(value.string);
+
+					empilerVoid(pileJson, V);
+
+					if (lex_data->nbSymboles > 0) {
+						free(lex_data->tableSymboles[lex_data->nbSymboles - 1].val.chaine);
+						lex_data->nbSymboles--;
+		                lex_data->tableSymboles = realloc(lex_data->tableSymboles, sizeof(TSymbole) * lex_data->nbSymboles);
+						if (lex_data->tableSymboles == NULL)
+							return -1;
+					}
+
+                    break;
+                }
+                case 11: { // V → n
+					JsonValueContainer *V = CreateJsonValueContainer();
+                    JsonValue value;
+					ValueType type;
+
+					if (lex_data->tableSymboles[lex_data->nbSymboles - 1].type == JSON_INT_NUMBER) {
+						type = integer;
+						value.integer = lex_data->tableSymboles[lex_data->nbSymboles - 1].val.entier;
+					}
+					else {
+						type = real;
+						value.real = lex_data->tableSymboles[lex_data->nbSymboles - 1].val.reel;
+					}
+					
+					UpdateJsonValueContainer(V, type, value);
+					empilerVoid(pileJson, V);
+
+					if (lex_data->nbSymboles > 0) {
+						lex_data->tableSymboles = realloc(lex_data->tableSymboles, sizeof(TSymbole) * lex_data->nbSymboles);
+						if (lex_data->tableSymboles == NULL)
+							return -1;
+					}
+
+                    break;
+                }
+				case 12: { // V → O
+					JsonValueContainer *V = CreateJsonValueContainer();
+                    JsonValue value;
+					ValueType type = object;
+
+					value.object = CreateJsonObject();
+
+					UpdateJsonValueContainer(V, type, value);
+					empilerVoid(pileJson, V);
+
+					if (lex_data->nbSymboles > 0) {
+						lex_data->nbSymboles--;
+		                lex_data->tableSymboles = realloc(lex_data->tableSymboles, sizeof(TSymbole) * lex_data->nbSymboles);
+						if (lex_data->tableSymboles == NULL)
+							return -1;
+					}
+
+                    break;
+                }
+				case 13: {
+                    break;
+                }
+				case 14: {
+                    break;
+                }
+				case 15: {
+                    break;
+                }
+				case 16: {
                     break;
                 }
                 default:
                     fini = 1;
                     break;
-            }
+            }*/
+
+			/*
+
+			#define CSTE_JSON_NULL 2
+			#define CSTE_JSON_TRUE 1
+			#define CSTE_JSON_FALSE 0
+
+
+			typedef struct _json_pair {
+				char * string;
+				struct _json_value_container * value;
+			} JsonPair;
+
+			typedef enum _value_type {
+				string,
+				integer,
+				real,
+				object,
+				array,
+				constant
+			} ValueType;
+
+			typedef union {
+				char * string;
+				int integer;
+				float real;
+				struct _json_object * object;
+				struct _json_array * array;
+				int constant;
+			} JsonValue;
+
+			typedef struct _json_value_container {
+				ValueType type;
+				JsonValue value;
+			} JsonValueContainer;
+
+			typedef struct _json_object {
+				JsonPair ** members;
+				int size;
+			} JsonObject;
+
+			typedef struct _json_array {
+				JsonValueContainer ** elements;
+				int size;
+			} JsonArray;
+
+
+			JsonArray * CreateJsonArray();
+			int InsertJsonArray(JsonArray * _array, JsonValueContainer * _valueContainer, const unsigned int _position);
+			int DeleteJsonArray(JsonArray ** _array);
+			char * PrintJsonArray(const JsonArray * _array);
+			char * PrintDotJsonArray(const JsonArray * _array);
+
+			JsonObject * CreateJsonObject();
+			int InsertJsonObject(JsonObject * _object, JsonPair * _pair);
+			JsonValueContainer * GetJsonValueContainer(const JsonObject * _object, const char * _string);
+			int DeleteJsonObject(JsonObject ** _object);
+			char * PrintJsonObject(const JsonObject * _object);
+			char * PrintDotJsonObject(const JsonObject * _object, int _id, int _idParent);
+
+			JsonValueContainer * CreateJsonValueContainer();
+			void UpdateJsonValueContainer(JsonValueContainer * _valueContainer, ValueType _type, JsonValue _value);
+			int DeleteJsonValueContainer(JsonValueContainer ** _valueContainer);
+			char * PrintJsonValueContainer(const JsonValueContainer * _valueContainer);
+
+			JsonPair * CreateJsonPair();
+			void UpdateJsonPair(JsonPair * _pair, char * _string, JsonValueContainer * _value);
+			int DeleteJsonPair(JsonPair ** _pair);
+			char * PrintJsonPair(const JsonPair *_pair);
+
+			*/
         }
         free(action);
-        //fini = 1;
     }
 
     deleteIntPile(&pile);
     deleteVoidPile(&pileJson);
     deleteLexData(lex_data);
-
-    /* initialisation
-    Pile : Pile d’Entiers
-    PileJSon : Pile de void
-    Empiler l’état 0 sur la Pile
-    /* on recupère un symbole en appelant l’analyseur lexicale
-    lexeme = Lex()
-    /* boucle générale
-    Fini = faux
-    TantQue non Fini Faire
-        action = TableAction[sommet(Pile)][lexeme]
-        Si action==Acceptation Alors
-            O = Depiler un objet JSon de la PileJSon /* l’arbre JSON est sur la pile
-            Fini = vrai
-            Retourner (O)
-        Sinon Si action==Déplacement Alors
-            Empiler TableGoto[sommet(Pile)][lexeme] sur la Pile
-            lexeme = Lex() /* on lit le symbole suivant
-        Sinon Si action==ERREUR Alors
-            Afficher l’erreur et Sortir
-        Sinon /* c’est une réduction, la table donne le numéro de la règle : n
-            /* on depile autant d’états que d’éléments
-            * en partie droite de la règle
-            i = 0,
-            Tantque i<taillePartieDroiteRegle[n]
-            Depiler un état de la Pile
-            i=i+1
-            /* on empile le nouvel état qui résume la nouvelle situation
-            * X est l’auxiliaire en partie gauche de la règle n
-            Empiler TableGoto[sommet(Pile)][X] sur la Pile
-            /* la suite de l’algorithme est consacré à la construction
-            * de l’arbre JSon en mémoire (si on vérifie la validité de la
-            * séquence, on pouvait s’arreter ici */
-            /* en fonction de la règle, il faut créer et assembler les structures JSON
-            Si n==1 Alors /* règle O -> { }
-                Créer un objet JSon vide et l’empiler sur PileJSon
-            Sinon Si n==2 Alors /* règle O -> { M }
-                /* il n’y a rien à faire car l’objet M est déjà sur la pile
-            Sinon Si n==3 Alors /* règle M -> P
-                P = dépiler de la PileJSon
-                Créer un objet Json, y insérer la paire P, et l’empiler sur PileJSon
-            Sinon Si n==4 Alors /* M -> P , M
-                O = dépiler de la PileJSon
-                P = dépiler de la PileJSon
-                Insérer la paire P dans l’objet O et empiler O sur PileJSon
-            Sinon Si n==5 Alors /* règle P -> s : V
-                Créer une paire P
-                C = dépiler le conteneur de Valeur de la PileJSon
-                s = dernier symbole lu par l’analyseur lexical (chaîne dans la table des symboles)
-                insérer s dans P
-                empiler P sur PileJSon
-                effacer s de la table des symboles
-            /*
-            * continuer ainsi pour toutes les règles 6...16
-    */
 
     return 0;
 }

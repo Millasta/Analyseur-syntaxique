@@ -61,9 +61,10 @@ void deleteIntPile(TIntPile ** _pile) {
 void printIntPile(TIntPile * _pile) {
     if(_pile->data != NULL) {
         int i;
-        printf("\n========== Affichage Pile ==========\n");
-        for(i = 0 ; i <= _pile->indexSommet ; i++)
+        printf("\n\n========== Int Pile ==========\n\n");
+        for(i = 0 ; i < _pile->indexSommet ; i++)
             printf("Pile[%d] : %d\n", i, _pile->data[i]);
+	printf("Pile[%d] : %d", _pile->indexSommet, _pile->data[_pile->indexSommet]);
     }
 }
 
@@ -168,9 +169,10 @@ void deleteVoidPile(TVoidPile ** _pile) {
 void printVoidPile(TVoidPile * _pile) {
     if(_pile != NULL) {
         int i;
-        printf("\n========== Affichage Pile ==========\n");
-        for(i = 0 ; i <= _pile->indexSommet ; i++)
+        printf("\n\n========== Void Pile ==========\n\n");
+        for(i = 0 ; i < _pile->indexSommet ; i++)
             printf("Pile[%d] : %p\n", i, _pile->data[i]);
+	printf("Pile[%d] : %p", _pile->indexSommet, _pile->data[_pile->indexSommet]);
     }
 }
 
